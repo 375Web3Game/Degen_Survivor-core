@@ -1,1 +1,2 @@
-# Degen_Survivor-core
+# Template for ERC721 Upgradeable with EIP712 Minting
+
