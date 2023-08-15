@@ -10,8 +10,8 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract MyNFT is ERC721EnumerableUpgradeable, EIP712SigMint, OwnableUpgradeable {
-    string public baseURI = "https://api.otherside.xyz/lands/";
-    uint256 public nextTokenId = 1;
+    string public baseURI;
+    uint256 public nextTokenId;
     mapping(uint256 => uint256) public itemIdToTokenId;
     mapping(uint256 => uint256) public tokenIdToItemId;
 

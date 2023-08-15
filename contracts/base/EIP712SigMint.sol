@@ -122,11 +122,11 @@ abstract contract EIP712SigMint {
         //     "digest: Invalid"
         // );
 
-        // require(
-        //     // isValidSigner[recoveredAddress],
-        //     recoveredAddress == 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266,
-        //     "AchievementsFactory: Invalid signer"
-        // );
+        require(
+            isValidSigner[recoveredAddress],
+            // recoveredAddress == 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266,
+            "AchievementsFactory: Invalid signer"
+        );
 
         require(
             block.timestamp <= _validUntil,
