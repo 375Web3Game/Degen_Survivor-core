@@ -3,10 +3,6 @@ import {expect} from "./chai-setup";
 
 import {ethers, deployments, getNamedAccounts, network} from 'hardhat';
 
-// SIG MINT
-// APPROVE
-// BURN
-
 async function signMessage(chainId: number, contractAddress: string, userAddress: string, itemId: number, validUntil: number, signer): string {
   const domainStruct = {
     name: "Web3Game",
@@ -97,8 +93,21 @@ describe("Token contract", function() {
     signature = await signMessage(chainId, NFTContractInstance.address, user, itemId, validUntil, deployer_sig);
     await NFTContractInstance_NFTContract.mint(user, itemId, validUntil, signature);
 
+    //Batch MINT
+    
+    let itemIds = [3333, 4444, 5555, 6666];
+    user = user1;
+    validUntil = Math.floor(Date.now() / 1000)+3600;
+    let signatures = []
+    for (let i = 0; i < itemIds.length; i++) {
+      const signature = await signMessage(chainId, NFTContractInstance.address, user, itemIds[i], validUntil, deployer_sig);
+      signatures.push(signature);
+    }
+    await NFTContractInstance_NFTContract.batchMint(user, itemIds, validUntil, signatures);
+
+
     const ownerBalance = await NFTContractInstance_NFTContract.balanceOf(user1);
-    const batchItemIdToTokenId = await NFTContractInstance_NFTContract.batchItemIdToTokenId([1111, 2222, 1, 0]);
+    const batchItemIdToTokenId = await NFTContractInstance_NFTContract.batchItemIdToTokenId([1111, 2222, 3333, 0]);
     const batchTokenIdToItemId = await NFTContractInstance_NFTContract.batchTokenIdToItemId([1, 2, 1111, 0]);
     const tokenOfOwner = await NFTContractInstance_NFTContract.tokenOfOwner(user1, 0, 10);
     console.log("\n==================================")

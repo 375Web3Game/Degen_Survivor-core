@@ -37,7 +37,7 @@ contract MyNFT is ERC721EnumerableUpgradeable, EIP712SigMint, OwnableUpgradeable
         uint256 itemId,
         uint256 validUntil,
         bytes calldata signature
-    ) external {
+    ) public {
         _checkEIP712Signature(user, itemId, validUntil, signature);
         require(itemId > 0, "Invalid item id");
         require(itemIdToTokenId[itemId] == 0, "Item already minted");
@@ -45,6 +45,18 @@ contract MyNFT is ERC721EnumerableUpgradeable, EIP712SigMint, OwnableUpgradeable
         itemIdToTokenId[itemId] = nextTokenId;
         tokenIdToItemId[nextTokenId] = itemId;
         nextTokenId++;
+    }
+
+    function batchMint(
+        address user,
+        uint256[] memory itemIds,
+        uint256 validUntil,
+        bytes[] calldata signatures
+    ) external {
+        require(itemIds.length == signatures.length, "Invalid input");
+        for (uint256 i = 0; i < itemIds.length; i++) {
+            mint(user, itemIds[i], validUntil, signatures[i]);
+        }
     }
 
     function batchItemIdToTokenId(uint256[] calldata itemIds)
