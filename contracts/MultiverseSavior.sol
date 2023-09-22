@@ -4,12 +4,18 @@ pragma solidity ^0.8.17;
 
 import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
 import "./interfaces/IMultiverseSavior.sol";
 
 contract MultiverseSavior is ERC20Permit, Ownable, IMultiverseSavior {
 	// MST has a total supply of 100 million
     uint256 public constant CAP = 1e8 ether;
+
+    bytes32 merkleRoot;
+
+    // Amount of token already claimed before
+    mapping (address => uint256) public claimedAmount;
 
 	// List of all minters
     mapping(address => bool) public isMinter;
@@ -50,9 +56,23 @@ contract MultiverseSavior is ERC20Permit, Ownable, IMultiverseSavior {
         _;
     }
 
+    /**
+     * @notice Checks if user is eligible for minting
+     * @param _amount Full amount claimable before any claiming
+     */
+    function eligible(address _user, uint256 _amount, bytes32[] calldata _proof) public view returns (bool) {
+        bytes32 leaf = keccak256(bytes.concat(keccak256(abi.encode(_user, _amount))));
+
+        return MerkleProof.verify(_proof, merkleRoot, leaf);
+    }
+
     // ---------------------------------------------------------------------------------------- //
     // *********************************** Admin Functions ************************************ //
     // ---------------------------------------------------------------------------------------- //
+
+    function setMerkleRoot(bytes32 _root) external onlyOwner {
+        merkleRoot = _root;
+    }
 
     /**
      * @notice Add a new minter into the minterList
@@ -105,6 +125,23 @@ contract MultiverseSavior is ERC20Permit, Ownable, IMultiverseSavior {
     // ---------------------------------------------------------------------------------------- //
     // *********************************** Mint & Burn ********************************* //
     // ---------------------------------------------------------------------------------------- //
+    
+    /**
+     * @param _fullAmount Full amount claimable before any claiming, amount used to generate merkle tree
+     * @param _claimAmount Amount to claim
+     */
+    function claim(
+        address _account, 
+        uint256 _fullAmount, 
+        uint256 _claimAmount, 
+        bytes32[] calldata _proof
+    ) external {
+        require(eligible(_account, _fullAmount, _proof), "Not eligible");
+        require(_claimAmount + claimedAmount[_account] > _fullAmount, "Total claim amount exceeded");
+        
+        claimedAmount[_account] += _claimAmount;
+        _mint(_account, _claimAmount);
+    }
 
     /**
      * @notice Mint tokens
